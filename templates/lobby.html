@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Самый умный ПЕПЕ - Комната</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .user-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .room-info {
+            background: #e8f4f8;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin: 15px 0 25px 0;
+            text-align: center;
+            border: 2px solid #b8d4e3;
+        }
+        .room-info .room-label {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .room-info .room-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+            background: white;
+            padding: 2px 12px;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+        .room-info .room-hint {
+            color: #7f8c8d;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+        .flash-message.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .flash-message.info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .players-section {
+            margin: 20px 0;
+        }
+        .players-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .player-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .player-card {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .player-card.ready {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .player-card.not-ready {
+            background: #f8f9fa;
+            border-color: #e0e0e0;
+        }
+        .player-card.me {
+            border-color: #667eea;
+        }
+        .player-card .player-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .player-card .player-status {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .player-card .status-ready {
+            color: #28a745;
+        }
+        .player-card .status-not-ready {
+            color: #dc3545;
+        }
+        .player-card .me-label {
+            font-size: 12px;
+            color: #667eea;
+            margin-left: 5px;
+        }
+        
+        .ready-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn-ready {
+            padding: 16px 50px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-ready:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.02);
+        }
+        .btn-ready:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-ready.not-ready {
+            background: #dc3545;
+        }
+        .btn-ready.not-ready:hover:not(:disabled) {
+            background: #c82333;
+        }
+        .btn-ready:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-text {
+            margin-top: 15px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .status-text.ready {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading p {
+            margin-top: 10px;
+            color: #7f8c8d;
+        }
+        
+        .auto-start-info {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .voting-info {
+            text-align: center;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            margin-top: 15px;
+        }
+        .voting-info .emoji-big {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .voting-info p {
+            color: #856404;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            .btn-ready {
+                padding: 14px 30px;
+                font-size: 17px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Комната ожидания</h1>
+            <p class="subtitle">Дождитесь, пока все игроки будут готовы</p>
+            <span class="user-badge">👤 {{ my_name }}</span>
+        </div>
+        
+        <div class="room-info">
+            <span class="room-label">🏠 ID комнаты:</span>
+            <span class="room-id">{{ session.get('room_id', '') }}</span>
+            <span class="room-hint">💡 Все игроки должны быть в одной комнате</span>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="players-section">
+            <h3>
+                👥 Игроки
+                <span class="player-count" id="playerCount">{{ players|length }} / 15</span>
+            </h3>
+            <div class="players-grid" id="playersGrid">
+                {% for player in players %}
+                    <div class="player-card 
+                                {% if player_status.get(player, False) %}ready{% else %}not-ready{% endif %}
+                                {% if player == my_name %}me{% endif %}"
+                         id="player-{{ player }}">
+                        <span>
+                            <span class="player-name">{{ player }}</span>
+                            {% if player == my_name %}
+                                <span class="me-label">(вы)</span>
+                            {% endif %}
+                        </span>
+                        <span class="player-status" id="status-{{ player }}">
+                            {% if player_status.get(player, False) %}
+                                <span class="status-ready">✅ Готов</span>
+                            {% else %}
+                                <span class="status-not-ready">⏳ Ожидает</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="ready-section">
+            <button class="btn-ready {% if player_status.get(my_name, False) %}not-ready{% endif %}" 
+                    id="readyBtn"
+                    onclick="toggleReady()"
+                    {% if session.get('voting_stage', False) %}disabled{% endif %}>
+                {% if player_status.get(my_name, False) %}
+                    ❌ Отменить готовность
+                {% else %}
+                    ✅ Я готов!
+                {% endif %}
+            </button>
+            <div class="status-text" id="statusText">
+                {% set ready_count = player_status.values()|select('eq', True)|list|length %}
+                {% set total = players|length %}
+                {% if total >= 2 %}
+                    {% if ready_count == total %}
+                        🎮 Все готовы! Переход к голосованию...
+                    {% else %}
+                        ⏳ Готово {{ ready_count }} из {{ total }} игроков
+                    {% endif %}
+                {% else %}
+                    👆 Нужно минимум 2 игрока (сейчас {{ total }})
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="auto-start-info">
+            💡 Когда все игроки нажмут "Готов" — начнется голосование за количество вопросов!
+        </div>
+        
+        {% if session.get('voting_stage', False) %}
+            <div class="voting-info">
+                <span class="emoji-big">🗳️</span>
+                <p>Все игроки готовы! Переход к голосованию...</p>
+            </div>
+        {% endif %}
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>⏳ Переход к голосованию...</p>
+        </div>
+    </div>
+    
+    <script>
+    let gameStarted = false;
+    let votingStage = {{ session.get('voting_stage', False)|lower }};
+    let checkCount = 0;
+    
+    console.log('📄 Страница загружена');
+    console.log('votingStage:', votingStage);
+    
+    // Функция проверки, не началось ли голосование
+    function checkVotingStatus() {
+        if (gameStarted) return;
+        
+        checkCount++;
+        console.log(`🔄 Проверка #${checkCount}`);
+        
+        fetch('/lobby_status')
+            .then(response => response.json())
+            .then(data => {
+                console.log('📥 Статус:', data);
+                
+                if (data.error) return;
+                
+                // Если голосование началось - переходим на страницу голосования
+                if (data.voting_stage) {
+                    console.log('🗳️ Голосование началось! Переход...');
+                    gameStarted = true;
+                    window.location.href = '/voting';
+                    return;
+                }
+                
+                // Если игра началась - переходим в игру
+                if (data.game_started) {
+                    console.log('🎮 Игра началась! Переход...');
+                    gameStarted = true;
+                    window.location.href = '/game';
+                    return;
+                }
+                
+                // Обновляем список игроков
+                const grid = document.getElementById('playersGrid');
+                let html = '';
+                data.players.forEach(player => {
+                    const isReady = data.player_status[player] || false;
+                    const isMe = player === data.my_name;
+                    html += `
+                        <div class="player-card ${isReady ? 'ready' : 'not-ready'} ${isMe ? 'me' : ''}" id="player-${player}">
+                            <span>
+                                <span class="player-name">${player}</span>
+                                ${isMe ? '<span class="me-label">(вы)</span>' : ''}
+                            </span>
+                            <span class="player-status" id="status-${player}">
+                                ${isReady ? '<span class="status-ready">✅ Готов</span>' : '<span class="status-not-ready">⏳ Ожидает</span>'}
+                            </span>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+                
+                // Обновляем счетчик
+                document.getElementById('playerCount').textContent = `${data.players.length} / 15`;
+                
+                // Обновляем статус-текст
+                const readyCount = Object.values(data.player_status).filter(v => v === true).length;
+                const total = data.players.length;
+                const statusText = document.getElementById('statusText');
+                
+                if (total >= 2) {
+                    if (readyCount === total) {
+                        statusText.textContent = '🎮 Все готовы! Переход к голосованию...';
+                        statusText.className = 'status-text ready';
+                        // Показываем индикатор загрузки
+                        document.getElementById('loadingIndicator').style.display = 'block';
+                        document.querySelector('.ready-section').style.opacity = '0.5';
+                        gameStarted = true;
+                        // Перезагружаем через 2 секунды - это вызовет проверку voting_stage
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        statusText.textContent = `⏳ Готово ${readyCount} из ${total} игроков`;
+                        statusText.className = 'status-text';
+                    }
+                } else {
+                    statusText.textContent = `👆 Нужно минимум 2 игрока (сейчас ${total})`;
+                    statusText.className = 'status-text';
+                }
+                
+                // Обновляем кнопку
+                const btn = document.getElementById('readyBtn');
+                if (btn && !btn.disabled) {
+                    const myStatus = data.player_status[data.my_name] || false;
+                    if (myStatus) {
+                        btn.textContent = '❌ Отменить готовность';
+                        btn.className = 'btn-ready not-ready';
+                    } else {
+                        btn.textContent = '✅ Я готов!';
+                        btn.className = 'btn-ready';
+                    }
+                }
+            })
+            .catch(error => console.error('❌ Ошибка:', error));
+    }
+    
+    function toggleReady() {
+        console.log('🔄 toggleReady вызван');
+        
+        if (votingStage) {
+            console.log('❌ Голосование уже началось');
+            return;
+        }
+        
+        const btn = document.getElementById('readyBtn');
+        if (!btn) {
+            console.log('❌ Кнопка не найдена');
+            return;
+        }
+        
+        btn.disabled = true;
+        console.log('⏳ Отправка запроса /toggle_ready...');
+        
+        fetch('/toggle_ready', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📥 Ответ от сервера:', data);
+            
+            if (data.error) {
+                alert('Ошибка: ' + data.error);
+                btn.disabled = false;
+                return;
+            }
+            
+            // Обновляем кнопку
+            if (data.status) {
+                btn.textContent = '❌ Отменить готовность';
+                btn.className = 'btn-ready not-ready';
+            } else {
+                btn.textContent = '✅ Я готов!';
+                btn.className = 'btn-ready';
+            }
+            btn.disabled = false;
+            
+            // Если все готовы - показываем загрузку
+            if (data.all_ready && data.player_count >= 2) {
+                console.log('🎮 Все готовы! Переход к голосованию...');
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.querySelector('.ready-section').style.opacity = '0.5';
+                gameStarted = true;
+                votingStage = true;
+                
+                // Перезагружаем через 2 секунды
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка запроса:', error);
+            alert('Произошла ошибка. Проверьте консоль.');
+            btn.disabled = false;
+        });
+    }
+    
+    // Запускаем проверку сразу при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Первая проверка через 500ms
+        setTimeout(checkVotingStatus, 500);
+        
+        // Затем каждые 2 секунды
+        setInterval(checkVotingStatus, 2000);
+    });
+</script>
+</body>
+</html>

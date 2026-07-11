@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Самый умный ПЕПЕ - Результаты</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .trophy {
+            text-align: center;
+            font-size: 80px;
+            margin: 10px 0 20px;
+        }
+        .winner-name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+            margin-bottom: 30px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .game-info .info-item {
+            text-align: center;
+        }
+        .game-info .info-item .info-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .game-info .info-item .info-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 2px;
+        }
+        .game-info .info-item .info-value.room {
+            color: #667eea;
+            font-size: 16px;
+        }
+        
+        .table-container {
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background: #f8f9fa;
+        }
+        .rank-1 {
+            background: #fff3cd !important;
+        }
+        .rank-1 td:first-child {
+            font-weight: bold;
+            color: #f39c12;
+            font-size: 20px;
+        }
+        .medal {
+            font-size: 24px;
+        }
+        .score {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        
+        .buttons-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-again {
+            flex: 2;
+            padding: 16px;
+            background: #27ae60;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-again:hover {
+            background: #219a52;
+        }
+        .btn-reset {
+            flex: 1;
+            padding: 16px;
+            background: #95a5a6;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-reset:hover {
+            background: #7f8c8d;
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        
+        .congrats {
+            text-align: center;
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .trophy {
+                font-size: 60px;
+            }
+            .winner-name {
+                font-size: 20px;
+            }
+            .game-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            .buttons-row {
+                flex-direction: column;
+            }
+            .btn-again, .btn-reset {
+                width: 100%;
+            }
+            .medal {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Игра окончена!</h1>
+        <div class="trophy">🏆</div>
+        
+        {% if sorted_players %}
+            <div class="winner-name">
+                🥇 Победитель: {{ winner }} 
+                {% for player, score in sorted_players %}
+                    {% if loop.index == 1 %}
+                        ({{ score }} баллов)
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Информация об игре -->
+        <div class="game-info">
+            <div class="info-item">
+                <div class="info-label">📝 Сыграно вопросов</div>
+                <div class="info-value">{{ total_questions }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">👥 Игроков</div>
+                <div class="info-value">{{ sorted_players|length }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">🏠 Комната</div>
+                <div class="info-value room">{{ room_id }}</div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Место</th>
+                        <th>Игрок</th>
+                        <th>Очки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player, score in sorted_players %}
+                    <tr class="{% if loop.index == 1 %}rank-1{% endif %}">
+                        <td>
+                            {% if loop.index == 1 %}
+                                <span class="medal">🥇</span>
+                            {% elif loop.index == 2 %}
+                                <span class="medal">🥈</span>
+                            {% elif loop.index == 3 %}
+                                <span class="medal">🥉</span>
+                            {% else %}
+                                <span style="color: #7f8c8d;">{{ loop.index }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ player }}
+                            {% if loop.index == 1 %}
+                                <span style="color: #f39c12; font-size: 12px;">⭐</span>
+                            {% endif %}
+                        </td>
+                        <td class="score">{{ score }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if sorted_players %}
+            <div class="congrats">
+                🎊 Поздравляем всех участников! Отличная игра!
+            </div>
+        {% endif %}
+        
+        <div class="buttons-row">
+            <a href="/reset" class="btn-again">🔄 Сыграть еще раз</a>
+            <a href="/" class="btn-reset">🏠 На главную</a>
+        </div>
+    </div>
+</body>
+</html>

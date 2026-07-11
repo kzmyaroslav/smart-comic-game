@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Самый умный ПЕПЕ - Игра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        /* ===== ШАПКА ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .user-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .badge-host {
+            background: #f39c12;
+            color: white;
+        }
+        .badge-player {
+            background: #3498db;
+            color: white;
+        }
+        .question-number {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        /* ===== ВОПРОС ===== */
+        .question-section {
+            margin: 20px 0 15px 0;
+        }
+        .question-box {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        .question-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+        
+        /* ===== ПРАВИЛЬНЫЙ ОТВЕТ (ТОЛЬКО ДЛЯ ВЕДУЩЕГО) ===== */
+        .answer-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 10px 0 15px 0;
+        }
+        .answer-box .answer-label {
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        .answer-box .answer-text {
+            font-size: 18px;
+            color: #155724;
+            font-weight: 500;
+        }
+        
+        /* ===== ВЕДУЩИЙ ===== */
+        .host-info {
+            margin: 10px 0 15px 0;
+            padding: 10px 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            text-align: center;
+        }
+        .host-info .host-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #856404;
+        }
+        .host-info .next-host {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+        
+        /* ===== КАРТОЧКИ ИГРОКОВ ===== */
+        .players-section {
+            margin: 20px 0;
+        }
+        .players-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        
+        /* ===== ОДНА КАРТОЧКА ===== */
+        .player-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 16px;
+            border: 3px solid #e0e0e0;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 180px;
+        }
+        .player-card.host {
+            border-color: #f39c12;
+            background: #fff8e7;
+        }
+        .player-card.me {
+            border-color: #3498db;
+            background: #ebf5fb;
+        }
+        .player-card .player-avatar {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+        .player-card .player-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .player-card .player-score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 5px 0 10px 0;
+        }
+        .player-card .player-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        .player-card .player-label.host-label {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .player-card .player-label.me-label {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        /* ===== КНОПКИ В КАРТОЧКЕ ===== */
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .card-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            flex: 1;
+            min-width: 60px;
+        }
+        .card-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        .card-btn:active {
+            transform: scale(0.95);
+        }
+        .card-btn.btn-plus2 {
+            background: #27ae60;
+        }
+        .card-btn.btn-plus2:hover {
+            background: #219a52;
+        }
+        .card-btn.btn-plus1 {
+            background: #f39c12;
+        }
+        .card-btn.btn-plus1:hover {
+            background: #e08e0b;
+        }
+        .card-btn.btn-minus1 {
+            background: #e74c3c;
+        }
+        .card-btn.btn-minus1:hover {
+            background: #c0392b;
+        }
+        
+        /* ===== КНОПКА ПРОПУСТИТЬ ===== */
+        .skip-container {
+            text-align: center;
+            margin: 15px 0 10px 0;
+        }
+        .btn-skip {
+            padding: 10px 40px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-skip:hover {
+            background: #7f8c8d;
+            transform: scale(1.02);
+        }
+        
+        /* ===== КНОПКА "СЛЕДУЮЩИЙ ВОПРОС" ===== */
+        .next-container {
+            text-align: center;
+            margin: 15px 0 10px 0;
+        }
+        .btn-next {
+            padding: 14px 50px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-next:hover {
+            background: #2980b9;
+            transform: scale(1.02);
+        }
+        
+        /* ===== СООБЩЕНИЯ ===== */
+        .flash-messages {
+            margin-bottom: 15px;
+        }
+        .flash-message {
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+        .flash-message.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .flash-message.info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* ===== АНИМАЦИЯ ===== */
+        @keyframes flash-update {
+            0% { background: #d4edda; }
+            100% { background: #f8f9fa; }
+        }
+        @keyframes flash-host {
+            0% { background: #fff8e7; }
+            100% { background: #fff8e7; }
+        }
+        .player-card.updated {
+            animation: flash-update 0.5s ease-out;
+        }
+        .player-card.host.updated {
+            animation: flash-host 0.5s ease-out;
+        }
+        
+        /* ===== СООБЩЕНИЕ ДЛЯ НЕ-ВЕДУЩЕГО ===== */
+        .waiting-message {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .waiting-message p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .waiting-message .emoji-big {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        /* ===== АДАПТИВНОСТЬ ===== */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .question-text {
+                font-size: 18px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .user-info {
+                justify-content: center;
+            }
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 10px;
+            }
+            .player-card {
+                min-height: 150px;
+                padding: 12px;
+            }
+            .player-card .player-avatar {
+                font-size: 30px;
+            }
+            .player-card .player-name {
+                font-size: 15px;
+            }
+            .player-card .player-score {
+                font-size: 22px;
+            }
+            .card-btn {
+                font-size: 11px;
+                padding: 5px 10px;
+                min-width: 45px;
+            }
+            .btn-next {
+                padding: 12px 30px;
+                font-size: 17px;
+            }
+            .btn-skip {
+                padding: 8px 25px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .players-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .player-card {
+                min-height: 130px;
+                padding: 10px;
+            }
+            .card-actions {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .card-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== УВЕДОМЛЕНИЯ ===== -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- ===== ШАПКА ===== -->
+        <div class="header">
+            <div class="user-info">
+                <span class="user-name">👤 {{ my_name }}</span>
+                {% if is_host %}
+                    <span class="user-badge badge-host" id="userBadge">👑 Ведущий</span>
+                {% else %}
+                    <span class="user-badge badge-player" id="userBadge">🎮 Игрок</span>
+                {% endif %}
+            </div>
+            <div class="question-number" id="questionNumber">
+                Вопрос {{ q_num }} из {{ total }}
+            </div>
+        </div>
+        
+        <!-- ===== ВЕДУЩИЙ ===== -->
+        <div class="host-info" id="hostInfo">
+            <span class="host-name" id="hostName">🎤 Ведущий: {{ host }}</span>
+            <span style="font-size:14px; margin-left:8px;">👑</span>
+            <div class="next-host" id="nextHost">➡️ Следующий ведущий: {{ next_host }}</div>
+        </div>
+        
+        <!-- ===== ВОПРОС ===== -->
+        <div class="question-section">
+            <div class="question-box" id="questionBox">
+                <div class="question-text" id="questionText">{{ question }}</div>
+            </div>
+            
+            <!-- ===== ПРАВИЛЬНЫЙ ОТВЕТ (ТОЛЬКО ДЛЯ ВЕДУЩЕГО) ===== -->
+            {% if is_host %}
+                <div class="answer-box" id="answerBox">
+                    <div class="answer-label">✅ Правильный ответ:</div>
+                    <div class="answer-text" id="answerText">{{ answer }}</div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- ===== КАРТОЧКИ ИГРОКОВ ===== -->
+        <div class="players-section">
+            <h3>👥 Игроки</h3>
+            <div class="players-grid" id="playersGrid">
+                {% for player in players %}
+                    {% set is_this_host = (player == host) %}
+                    {% set is_me = (player == my_name) %}
+                    {% set player_score = scores.get(player, 0) %}
+                    
+                    <div class="player-card 
+                                {% if is_this_host %}host{% endif %}
+                                {% if is_me %}me{% endif %}"
+                         id="player-{{ player }}">
+                        
+                        <!-- Аватар -->
+                        <div class="player-avatar">
+                            {% if is_this_host %}👑{% else %}🎮{% endif %}
+                        </div>
+                        
+                        <!-- Имя -->
+                        <div class="player-name">{{ player }}</div>
+                        
+                        <!-- Очки -->
+                        <div class="player-score" id="score-{{ player }}">{{ player_score }}</div>
+                        
+                        <!-- Метки -->
+                        <div class="player-label">
+                            {% if is_this_host %}
+                                <span class="host-label">👑 Ведущий</span>
+                            {% elif is_me %}
+                                <span class="me-label">(Вы)</span>
+                            {% else %}
+                                <span style="color:#95a5a6;">Игрок</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- ===== КНОПКИ УПРАВЛЕНИЯ ===== -->
+                        <!-- Показываем кнопки ТОЛЬКО если:
+                             1. Игрок является ведущим (is_host)
+                             2. И НЕ является текущим ведущим (player != host) -->
+                        {% if is_host and player != host %}
+                            <div class="card-actions">
+                                <form action="/action" method="post" style="display: inline;">
+                                    <input type="hidden" name="player" value="{{ player }}">
+                                    <button type="submit" name="action" value="correct" class="card-btn btn-plus2">
+                                        +2
+                                    </button>
+                                </form>
+                                <form action="/action" method="post" style="display: inline;">
+                                    <input type="hidden" name="player" value="{{ player }}">
+                                    <button type="submit" name="action" value="partial" class="card-btn btn-plus1">
+                                        +1
+                                    </button>
+                                </form>
+                                <form action="/action" method="post" style="display: inline;">
+                                    <input type="hidden" name="player" value="{{ player }}">
+                                    <button type="submit" name="action" value="wrong" class="card-btn btn-minus1">
+                                        -1
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- ===== КНОПКА ПРОПУСТИТЬ ВОПРОС (ТОЛЬКО ДЛЯ ВЕДУЩЕГО) ===== -->
+        {% if is_host %}
+            <div class="skip-container">
+                <form action="/action" method="post">
+                    <input type="hidden" name="player" value="">
+                    <button type="submit" name="action" value="skip" class="btn-skip">
+                        ⏭️ Пропустить вопрос
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        
+        <!-- ===== КНОПКА "СЛЕДУЮЩИЙ ВОПРОС" (ПОСЛЕ +2) ===== -->
+        {% if is_host and show_next %}
+            <div class="next-container">
+                <form action="/action" method="post">
+                    <input type="hidden" name="player" value="">
+                    <button type="submit" name="action" value="next" class="btn-next">
+                        ➡️ Следующий вопрос
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        
+        <!-- ===== СООБЩЕНИЕ ДЛЯ НЕ-ВЕДУЩЕГО ===== -->
+        {% if not is_host %}
+            <div class="waiting-message" id="waitingMessage">
+                <span class="emoji-big">🎤</span>
+                <p>Ведущий решает, кто получает баллы</p>
+                <p style="font-size: 13px; color: #bdc3c7; margin-top: 3px;">
+                    Ожидайте решения ведущего...
+                </p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        let currentState = {
+            question: '{{ question }}',
+            q_num: {{ q_num }},
+            total: {{ total }},
+            host: '{{ host }}',
+            next_host: '{{ next_host }}',
+            is_host: {{ is_host|lower }},
+            scores: {{ scores|tojson }},
+            show_next: {{ show_next|lower }}
+        };
+        
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.flash-message');
+            messages.forEach(function(msg) {
+                msg.style.transition = 'opacity 0.5s';
+                msg.style.opacity = '0';
+                setTimeout(function() {
+                    msg.remove();
+                }, 500);
+            });
+        }, 3000);
+        
+        function updateGameStatus() {
+            fetch('/lobby_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    
+                    if (!data.game_started) {
+                        location.href = '/lobby';
+                        return;
+                    }
+                    
+                    if (data.current_q_index !== undefined) {
+                        const currentQNum = parseInt(document.querySelector('.question-number').textContent.replace('Вопрос ', '').replace(' из ' + currentState.total, ''));
+                        const newQNum = data.current_q_index + 1;
+                        
+                        if (currentQNum !== newQNum && currentQNum !== data.total) {
+                            location.reload();
+                            return;
+                        }
+                    }
+                    
+                    if (data.current_player_index !== undefined) {
+                        const players = data.players || [];
+                        const currentHost = players[data.current_player_index % players.length] || '';
+                        
+                        if (currentHost !== currentState.host) {
+                            location.reload();
+                            return;
+                        }
+                    }
+                    
+                    if (data.scores) {
+                        const playerCards = document.querySelectorAll('.player-card');
+                        playerCards.forEach(card => {
+                            const nameSpan = card.querySelector('.player-name');
+                            if (nameSpan) {
+                                const playerName = nameSpan.textContent.trim();
+                                const scoreSpan = card.querySelector('.player-score');
+                                if (scoreSpan && data.scores[playerName] !== undefined) {
+                                    const newScore = data.scores[playerName];
+                                    if (scoreSpan.textContent !== String(newScore)) {
+                                        scoreSpan.textContent = newScore;
+                                        card.classList.add('updated');
+                                        setTimeout(() => {
+                                            card.classList.remove('updated');
+                                        }, 500);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    if (data.show_next !== undefined && data.show_next !== currentState.show_next) {
+                        currentState.show_next = data.show_next;
+                        location.reload();
+                        return;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        setInterval(updateGameStatus, 2000);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(updateGameStatus, 1000);
+        });
+    </script>
+</body>
+</html>

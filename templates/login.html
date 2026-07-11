@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Самый умный ПЕПЕ - Вход</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+        .logo {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .room-info {
+            background: #e8f4f8;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #b8d4e3;
+        }
+        .room-info .room-label {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .room-info .room-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+            background: white;
+            padding: 2px 12px;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+        .room-info .room-hint {
+            color: #7f8c8d;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+        .flash-message.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .flash-message.info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input[type="text"] {
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-join {
+            padding: 14px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-join:hover {
+            background: #229954;
+        }
+        .info-text {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+        .info-text span {
+            font-weight: bold;
+            color: #667eea;
+        }
+        .players-online {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .players-online .count {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎭</div>
+        <h1>Самый умный ПЕПЕ</h1>
+        <p class="subtitle">Введите имя чтобы присоединиться к игре</p>
+        
+        <!-- Отображение ID комнаты -->
+        <div class="room-info">
+            <span class="room-label">🏠 ID комнаты:</span>
+            <span class="room-id">{{ room_id }}</span>
+            <span class="room-hint">💡 Все игроки должны быть в одной комнате</span>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form action="/login" method="post" class="input-group">
+            <input type="text" name="name" placeholder="Введите ваше имя" required autofocus>
+            <button type="submit" class="btn-join">Присоединиться 🚀</button>
+        </form>
+        
+        <div class="info-text">
+            💡 <span>Первый игрок</span> создает комнату<br>
+            Максимум <span>15</span> игроков
+        </div>
+        
+        <div class="players-online" id="playersOnline">
+            👥 Игроков в комнате: <span class="count" id="playerCount">0</span>
+        </div>
+    </div>
+    
+    <script>
+        // Функция для получения информации о комнате
+        function updateRoomInfo() {
+            fetch('/room_info')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('playerCount').textContent = data.player_count;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Обновляем каждые 2 секунды
+        updateRoomInfo();
+        setInterval(updateRoomInfo, 2000);
+    </script>
+</body>
+</html>
