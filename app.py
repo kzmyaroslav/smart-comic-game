@@ -5,7 +5,7 @@ import os
 import uuid
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here-change-it-in-production-12345'
+app.ПЕПЕ_key = '11ab3666e9f5243b582d8a91d112e32947e82f59637f75f67773884af277106a'
 app.config['DEBUG'] = True
 
 # ==============================================
