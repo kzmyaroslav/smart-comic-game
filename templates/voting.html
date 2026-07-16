@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Самый умный ПЕПЕ - Голосование</title>
+    <title>Самый умный комик - Голосование</title>
     <style>
+        /* Ваши стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -24,7 +25,6 @@
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -47,7 +47,6 @@
             font-size: 14px;
             margin-top: 10px;
         }
-        
         .players-list {
             text-align: center;
             margin-bottom: 20px;
@@ -71,14 +70,12 @@
             background: #f8d7da;
             border: 1px solid #dc3545;
         }
-        
         .options-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
-        
         .option-card {
             background: #f8f9fa;
             border: 3px solid #e0e0e0;
@@ -116,7 +113,6 @@
             margin-top: 8px;
             font-weight: bold;
         }
-        
         .btn-vote {
             display: block;
             width: 100%;
@@ -140,7 +136,6 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
-        
         .waiting-message {
             text-align: center;
             padding: 20px;
@@ -148,6 +143,7 @@
             border-radius: 10px;
             border: 2px solid #ffc107;
             margin-top: 20px;
+            display: none;
         }
         .waiting-message .spinner {
             display: inline-block;
@@ -162,7 +158,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+        .waiting-message p {
+            margin-top: 10px;
+            color: #856404;
+        }
         .flash-messages {
             margin-bottom: 15px;
         }
@@ -198,7 +197,6 @@
                 transform: translateY(0);
             }
         }
-        
         .vote-result {
             text-align: center;
             padding: 20px;
@@ -216,7 +214,32 @@
             font-size: 18px;
             color: #155724;
         }
-        
+        .vote-result .result-sub {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        .loading-overlay {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .loading-overlay .spinner-big {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-overlay p {
+            margin-top: 15px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
         @media (max-width: 600px) {
             .container {
                 padding: 15px;
@@ -276,7 +299,14 @@
                         <div class="option-votes" id="votes-{{ option }}">
                             {% set vote_count = votes.values()|select('eq', option)|list|length %}
                             {% if vote_count > 0 %}
-                                {{ vote_count }} голос{{ vote_count|pluralize('', 'а', 'ов') }}
+                                {{ vote_count }} 
+                                {% if vote_count == 1 %}
+                                    голос
+                                {% elif vote_count >= 2 and vote_count <= 4 %}
+                                    голоса
+                                {% else %}
+                                    голосов
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -290,172 +320,181 @@
                 </button>
             </form>
             
-            <div class="waiting-message" id="waitingMessage" style="display: none;">
+            <div class="waiting-message" id="waitingMessage">
                 <div class="spinner"></div>
-                <p style="margin-top: 10px;">⏳ Ожидаем голосования всех игроков...</p>
+                <p>⏳ Ожидаем голосования всех игроков...</p>
             </div>
         {% else %}
             <div class="vote-result">
                 <div class="result-label">🎮 Выбрано количество вопросов:</div>
                 <div class="result-number">{{ selected_questions }}</div>
-                <div style="margin-top: 10px; font-size: 16px; color: #155724;">
-                    Игра начинается...
-                </div>
+                <div class="result-sub">⏳ Игра начинается...</div>
+            </div>
+            <div class="loading-overlay">
+                <div class="spinner-big"></div>
+                <p>⏳ Загрузка игры...</p>
             </div>
         {% endif %}
     </div>
     
-   <script>
-    let selectedOption = null;
-    let votingCompleted = {{ voting_completed|lower }};
-    let allVoted = false;
-    
-    console.log('📄 Страница голосования загружена');
-    console.log('votingCompleted:', votingCompleted);
-    
-    function selectOption(option) {
-        if (votingCompleted) return;
+    <script>
+        let selectedOption = null;
+        let votingCompleted = {{ voting_completed|lower }};
+        let redirecting = false;
         
-        // Снимаем выделение со всех карточек
-        document.querySelectorAll('.option-card').forEach(card => {
-            card.classList.remove('selected');
-        });
+        console.log('📄 Страница голосования загружена');
+        console.log('votingCompleted:', votingCompleted);
         
-        // Выделяем выбранную карточку
-        document.querySelector(`.option-card[data-option="${option}"]`).classList.add('selected');
-        
-        selectedOption = option;
-        document.getElementById('selectedOption').value = option;
-        document.getElementById('voteBtn').disabled = false;
-    }
-    
-    document.getElementById('voteForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (!selectedOption) return;
-        
-        const form = this;
-        const formData = new FormData(form);
-        
-        fetch('/vote', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-                return;
-            }
+        function selectOption(option) {
+            if (votingCompleted || redirecting) return;
             
-            // Отключаем кнопку и показываем ожидание
-            document.getElementById('voteBtn').disabled = true;
-            document.getElementById('voteBtn').textContent = '✅ Проголосовано!';
-            document.getElementById('waitingMessage').style.display = 'block';
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
             
-            // Обновляем статус
-            updateVotingStatus();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при голосовании');
-        });
-    });
-    
-    function updateVotingStatus() {
-        fetch('/voting_status')
+            document.querySelector(`.option-card[data-option="${option}"]`).classList.add('selected');
+            
+            selectedOption = option;
+            document.getElementById('selectedOption').value = option;
+            document.getElementById('voteBtn').disabled = false;
+        }
+        
+        document.getElementById('voteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!selectedOption || redirecting) return;
+            
+            const form = this;
+            const formData = new FormData(form);
+            
+            fetch('/vote', {
+                method: 'POST',
+                body: formData
+            })
             .then(response => response.json())
             .then(data => {
-                if (data.error) return;
-                
-                console.log('📊 Статус голосования:', data);
-                
-                // Обновляем количество голосов на карточках
-                const votes = data.votes;
-                const optionCards = document.querySelectorAll('.option-card');
-                
-                optionCards.forEach(card => {
-                    const option = parseInt(card.dataset.option);
-                    const voteCount = Object.values(votes).filter(v => v === option).length;
-                    const votesSpan = document.getElementById(`votes-${option}`);
-                    if (votesSpan) {
-                        if (voteCount > 0) {
-                            const word = voteCount === 1 ? 'голос' : (voteCount >= 2 && voteCount <= 4 ? 'голоса' : 'голосов');
-                            votesSpan.textContent = `${voteCount} ${word}`;
-                        } else {
-                            votesSpan.textContent = '';
-                        }
-                    }
-                });
-                
-                // Обновляем список игроков
-                const playersList = document.querySelector('.players-list');
-                if (playersList) {
-                    let html = '<strong>👥 Игроки:</strong> ';
-                    const players = Object.keys(votes);
-                    players.forEach(player => {
-                        const hasVoted = votes[player] !== null;
-                        html += `
-                            <span class="player-tag ${hasVoted ? 'voted' : 'not-voted'}">
-                                ${player}
-                                ${hasVoted ? '✅' : '⏳'}
-                            </span>
-                        `;
-                    });
-                    playersList.innerHTML = html;
+                if (data.error) {
+                    alert(data.error);
+                    return;
                 }
                 
-                // Проверяем, все ли проголосовали
-                allVoted = data.all_voted;
+                document.getElementById('voteBtn').disabled = true;
+                document.getElementById('voteBtn').textContent = '✅ Проголосовано!';
+                document.getElementById('waitingMessage').style.display = 'block';
                 
-                // Если все проголосовали и голосование еще не завершено
-                if (data.all_voted && !data.voting_completed) {
-                    console.log('🗳️ Все проголосовали! Ожидаем подсчет...');
-                    document.getElementById('waitingMessage').querySelector('p').textContent = '⏳ Все проголосовали! Подсчет результатов...';
-                    
-                    // Проверяем через 1 секунду, не завершилось ли голосование
-                    setTimeout(() => {
-                        fetch('/voting_status')
-                            .then(response => response.json())
-                            .then(data2 => {
-                                if (data2.voting_completed) {
-                                    console.log('✅ Голосование завершено! Переход в игру...');
-                                    window.location.href = '/game';
-                                } else {
-                                    // Если еще не завершено, проверяем снова через секунду
-                                    setTimeout(() => {
-                                        location.reload();
-                                    }, 1000);
-                                }
-                            });
-                    }, 1500);
-                }
-                
-                // Если голосование завершено - переходим в игру
-                if (data.voting_completed) {
-                    console.log('✅ Голосование завершено! Переход в игру...');
-                    setTimeout(() => {
-                        window.location.href = '/game';
-                    }, 1000);
-                }
+                updateVotingStatus();
             })
-            .catch(error => console.error('Error:', error));
-    }
-    
-    // Обновляем статус каждые 2 секунды
-    setInterval(updateVotingStatus, 2000);
-    
-    // Проверяем при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-        if (votingCompleted) {
-            console.log('✅ Голосование уже завершено, переход в игру...');
-            setTimeout(() => {
-                window.location.href = '/game';
-            }, 1000);
-        } else {
-            updateVotingStatus();
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при голосовании');
+            });
+        });
+        
+        function updateVotingStatus() {
+            if (redirecting) return;
+            
+            fetch('/voting_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    
+                    console.log('📊 Статус голосования:', data);
+                    
+                    // Обновляем голоса на карточках
+                    const votes = data.votes;
+                    const optionCards = document.querySelectorAll('.option-card');
+                    
+                    optionCards.forEach(card => {
+                        const option = parseInt(card.dataset.option);
+                        const voteCount = Object.values(votes).filter(v => v === option).length;
+                        const votesSpan = document.getElementById(`votes-${option}`);
+                        if (votesSpan) {
+                            if (voteCount > 0) {
+                                let word = '';
+                                if (voteCount === 1) word = 'голос';
+                                else if (voteCount >= 2 && voteCount <= 4) word = 'голоса';
+                                else word = 'голосов';
+                                votesSpan.textContent = `${voteCount} ${word}`;
+                            } else {
+                                votesSpan.textContent = '';
+                            }
+                        }
+                    });
+                    
+                    // Обновляем список игроков
+                    const playersList = document.querySelector('.players-list');
+                    if (playersList) {
+                        let html = '<strong>👥 Игроки:</strong> ';
+                        const players = Object.keys(votes);
+                        players.forEach(player => {
+                            const hasVoted = votes[player] !== null;
+                            html += `
+                                <span class="player-tag ${hasVoted ? 'voted' : 'not-voted'}">
+                                    ${player}
+                                    ${hasVoted ? '✅' : '⏳'}
+                                </span>
+                            `;
+                        });
+                        playersList.innerHTML = html;
+                    }
+                    
+                    // Если все проголосовали
+                    if (data.all_voted && !data.voting_completed) {
+                        console.log('🗳️ Все проголосовали! Ожидаем подсчет...');
+                        const waitingMsg = document.getElementById('waitingMessage');
+                        if (waitingMsg) {
+                            waitingMsg.style.display = 'block';
+                            waitingMsg.querySelector('p').textContent = '⏳ Все проголосовали! Подсчет результатов...';
+                        }
+                        
+                        let checks = 0;
+                        const checkInterval = setInterval(() => {
+                            checks++;
+                            console.log(`🔄 Проверка #${checks}...`);
+                            
+                            fetch('/voting_status')
+                                .then(response => response.json())
+                                .then(data2 => {
+                                    if (data2.voting_completed) {
+                                        clearInterval(checkInterval);
+                                        console.log('✅ Голосование завершено! Переход в игру...');
+                                        redirecting = true;
+                                        window.location.href = '/game';
+                                    } else if (checks > 10) {
+                                        clearInterval(checkInterval);
+                                        console.log('🔄 Перезагрузка страницы...');
+                                        location.reload();
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                });
+                        }, 1000);
+                    }
+                    
+                    if (data.voting_completed && !redirecting) {
+                        console.log('✅ Голосование завершено! Переход в игру...');
+                        redirecting = true;
+                        setTimeout(() => {
+                            window.location.href = '/game';
+                        }, 1000);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
-    });
-</script>
+        
+        setInterval(updateVotingStatus, 2000);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (votingCompleted) {
+                console.log('✅ Голосование уже завершено, переход в игру...');
+                setTimeout(() => {
+                    window.location.href = '/game';
+                }, 1500);
+            } else {
+                updateVotingStatus();
+            }
+        });
+    </script>
 </body>
 </html>
